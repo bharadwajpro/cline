@@ -26,7 +26,11 @@ import { ChatSettings, DEFAULT_CHAT_SETTINGS } from "../../shared/ChatSettings"
 import { ExtensionMessage, ExtensionState, Invoke, Platform, ClineSay } from "../../shared/ExtensionMessage"
 import { HistoryItem } from "../../shared/HistoryItem"
 import { McpDownloadResponse, McpMarketplaceCatalog, McpServer } from "../../shared/mcp"
-import { ClineCheckpointRestore, WebviewMessage as ImportedWebviewMessage, WebviewMessageType as ImportedWebviewMessageType } from "../../shared/WebviewMessage"
+import {
+	ClineCheckpointRestore,
+	WebviewMessage as ImportedWebviewMessage,
+	WebviewMessageType as ImportedWebviewMessageType,
+} from "../../shared/WebviewMessage"
 import { fileExistsAtPath } from "../../utils/fs"
 import { searchCommits } from "../../utils/git"
 import { Cline } from "../Cline"
@@ -122,24 +126,26 @@ type GlobalStateKey =
 	| "thinkingBudgetTokens"
 	| "planActSeparateModelsSetting"
 
-type WebviewMessageType = ImportedWebviewMessageType | "fetchUserCreditsData";
+type WebviewMessageType = ImportedWebviewMessageType | "fetchUserCreditsData"
 
 interface ClineAskResponse {
-    text: string;
-    images?: string[];
+	text: string
+	images?: string[]
 }
 
 interface WebviewMessage extends ImportedWebviewMessage {
-    bool?: boolean;
-    disabled?: boolean;
-    askResponse?: ClineAskResponse;
+	bool?: boolean
+	disabled?: boolean
+	askResponse?: ClineAskResponse
 }
 
 // Update ExtensionMessage type to include human relay message types and error
-type ExtendedExtensionMessage = ExtensionMessage | {
-    type: "humanRelayMessageCopied" | "humanRelayResponseSubmitted" | "humanRelayWaitingForResponse" | "error";
-    text?: string;
-};
+type ExtendedExtensionMessage =
+	| ExtensionMessage
+	| {
+			type: "humanRelayMessageCopied" | "humanRelayResponseSubmitted" | "humanRelayWaitingForResponse" | "error"
+			text?: string
+	  }
 
 export class ClineProvider implements vscode.WebviewViewProvider {
 	public static readonly sideBarId = "claude-dev.SidebarProvider" // used in package.json as the view's id. This value cannot be changed due to how vscode caches views based on their id, and updating the id would break existing instances of the extension.
@@ -155,8 +161,8 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 	private humanRelayState: HumanRelayState = {
 		isWaitingForResponse: false,
 		formattedMessage: "",
-		currentStream: null
-	};
+		currentStream: null,
+	}
 
 	constructor(
 		readonly context: vscode.ExtensionContext,
@@ -979,12 +985,12 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 					// Add more switch case statements here as more webview message commands
 					// are created within the webview context (i.e. inside media/main.js)
 					case "humanRelayCopyMessage":
-						await this.handleHumanRelayCopyMessage();
-						break;
-						
+						await this.handleHumanRelayCopyMessage()
+						break
+
 					case "humanRelaySubmitResponse":
-						await this.handleHumanRelaySubmitResponse(message.response);
-						break;
+						await this.handleHumanRelaySubmitResponse(message.response)
+						break
 				}
 			},
 			null,
@@ -2520,8 +2526,8 @@ Here is the project's README to help you get started:\n\n${mcpDetails.readmeCont
 			await vscode.env.clipboard.writeText(this.humanRelayState.formattedMessage)
 			await this.postMessageToWebview({
 				type: "humanRelayMessageCopied",
-				text: undefined
-			} as ExtensionMessage);
+				text: undefined,
+			} as ExtensionMessage)
 		} catch (error) {
 			this.outputChannel.appendLine(`Error copying message: ${error.message}`)
 			await this.postMessageToWebview({
@@ -2530,9 +2536,9 @@ Here is the project's README to help you get started:\n\n${mcpDetails.readmeCont
 				partialMessage: {
 					type: "say",
 					say: "error",
-					text: "Failed to copy message to clipboard"
-				}
-			} as ExtensionMessage);
+					text: "Failed to copy message to clipboard",
+				},
+			} as ExtensionMessage)
 		}
 	}
 
@@ -2548,26 +2554,26 @@ Here is the project's README to help you get started:\n\n${mcpDetails.readmeCont
 
 			// Add the response to the stream
 			if (this.humanRelayState.currentStream instanceof ControlledApiStream) {
-				const stream = this.humanRelayState.currentStream;
+				const stream = this.humanRelayState.currentStream
 				stream.addChunk({
 					type: "content",
-					content: response
-				});
-				stream.end();
+					content: response,
+				})
+				stream.end()
 			}
 
 			// Reset the human relay state
 			this.humanRelayState = {
 				isWaitingForResponse: false,
 				formattedMessage: "",
-				currentStream: null
+				currentStream: null,
 			}
-			
+
 			// Notify the webview that the response was submitted
 			await this.postMessageToWebview({
 				type: "humanRelayResponseSubmitted",
-				text: undefined
-			} as ExtensionMessage);
+				text: undefined,
+			} as ExtensionMessage)
 		} catch (error) {
 			this.outputChannel.appendLine(`Error submitting response: ${error.message}`)
 			await this.postMessageToWebview({
@@ -2576,9 +2582,9 @@ Here is the project's README to help you get started:\n\n${mcpDetails.readmeCont
 				partialMessage: {
 					type: "say",
 					say: "error",
-					text: "Failed to submit response. Please try again."
-				}
-			} as ExtensionMessage);
+					text: "Failed to submit response. Please try again.",
+				},
+			} as ExtensionMessage)
 		}
 	}
 
@@ -2589,19 +2595,19 @@ Here is the project's README to help you get started:\n\n${mcpDetails.readmeCont
 
 			if (handler instanceof HumanRelayHandler) {
 				// Store the formatted message for copying
-				this.humanRelayState.formattedMessage = handler.getCurrentStream() ? 
-					handler.getCurrentStream()!.toString() : 
-					"No message available"
+				this.humanRelayState.formattedMessage = handler.getCurrentStream()
+					? handler.getCurrentStream()!.toString()
+					: "No message available"
 				this.humanRelayState.isWaitingForResponse = true
-				
+
 				// Create and store the stream
 				this.humanRelayState.currentStream = handler.createMessage(systemPrompt, messages) as ControlledApiStream
-				
+
 				// Notify the webview to show the copy button and instructions
 				await this.postMessageToWebview({
 					type: "humanRelayWaitingForResponse",
-					text: "Please copy the message and paste it into your external LLM interface."
-				} as ExtensionMessage);
+					text: "Please copy the message and paste it into your external LLM interface.",
+				} as ExtensionMessage)
 			}
 		} catch (error) {
 			this.outputChannel.appendLine(`Error creating message: ${error.message}`)
@@ -2611,9 +2617,9 @@ Here is the project's README to help you get started:\n\n${mcpDetails.readmeCont
 				partialMessage: {
 					type: "say",
 					say: "error",
-					text: "Failed to create message. Please try again."
-				}
-			} as ExtensionMessage);
+					text: "Failed to create message. Please try again.",
+				},
+			} as ExtensionMessage)
 		}
 	}
 

@@ -1736,8 +1736,8 @@ export function normalizeApiConfiguration(apiConfiguration?: ApiConfiguration): 
 					supportsPromptCache: false,
 					inputPrice: 0,
 					outputPrice: 0,
-					description: "Manual relay through external LLM interface"
-				}
+					description: "Manual relay through external LLM interface",
+				},
 			}
 		default:
 			return getProviderData(anthropicModels, anthropicDefaultModelId)

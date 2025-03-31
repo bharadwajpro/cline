@@ -707,8 +707,12 @@ export class Cline {
 		return result
 	}
 
-	async handleWebviewAskResponse(askResponse: ClineAskResponse | { text: string; images?: string[] }, text?: string, images?: string[]) {
-		if (typeof askResponse === 'object') {
+	async handleWebviewAskResponse(
+		askResponse: ClineAskResponse | { text: string; images?: string[] },
+		text?: string,
+		images?: string[],
+	) {
+		if (typeof askResponse === "object") {
 			this.askResponseText = askResponse.text
 			this.askResponseImages = askResponse.images
 		} else {

@@ -33,16 +33,19 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 	const virtuosoRef = useRef<VirtuosoHandle>(null)
 	const textAreaRef = useRef<HTMLTextAreaElement>(null)
 
-	const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-		if (e.key === "Enter" && !e.shiftKey) {
-			e.preventDefault()
-			if (isHumanRelayMode && isWaitingForResponse) {
-				handleSubmitResponse()
-			} else {
-				handleSendMessage(inputValue, selectedImages)
+	const handleKeyDown = useCallback(
+		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+			if (e.key === "Enter" && !e.shiftKey) {
+				e.preventDefault()
+				if (isHumanRelayMode && isWaitingForResponse) {
+					handleSubmitResponse()
+				} else {
+					handleSendMessage(inputValue, selectedImages)
+				}
 			}
-		}
-	}, [inputValue, selectedImages, isHumanRelayMode, isWaitingForResponse])
+		},
+		[inputValue, selectedImages, isHumanRelayMode, isWaitingForResponse],
+	)
 
 	const handleSendMessage = useCallback((text: string, images: string[]) => {
 		if (!text.trim() && images.length === 0) return
@@ -57,9 +60,9 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 
 	const handleSubmitResponse = useCallback(() => {
 		if (inputValue.trim()) {
-			vscode.postMessage({ 
+			vscode.postMessage({
 				type: "humanRelaySubmitResponse",
-				response: inputValue.trim()
+				response: inputValue.trim(),
 			} as WebviewMessage)
 			setInputValue("")
 		}
@@ -144,9 +147,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 	return (
 		<div className="flex flex-col h-full">
 			{errorMessage && (
-				<div className="bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-100 p-4 rounded-lg m-4">
-					{errorMessage}
-				</div>
+				<div className="bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-100 p-4 rounded-lg m-4">{errorMessage}</div>
 			)}
 			<div className="flex-1 overflow-y-auto">
 				{/* ... existing message list ... */}
@@ -156,9 +157,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 							<h3 className="text-lg font-semibold">Human Relay Mode</h3>
 							<div className="flex items-center space-x-2">
 								{copySuccess && (
-									<span className="text-sm text-green-600 dark:text-green-400">
-										Copied to clipboard!
-									</span>
+									<span className="text-sm text-green-600 dark:text-green-400">Copied to clipboard!</span>
 								)}
 								<IconButton
 									onClick={handleCopyMessage}
@@ -170,8 +169,8 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 							</div>
 						</div>
 						<p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-							Please copy the message above and paste it into your external LLM interface.
-							Once you have the response, paste it in the input box below and click Submit.
+							Please copy the message above and paste it into your external LLM interface. Once you have the
+							response, paste it in the input box below and click Submit.
 						</p>
 						<div className="bg-white dark:bg-gray-900 p-4 rounded-lg border dark:border-gray-700">
 							<pre className="whitespace-pre-wrap text-sm font-mono">{formattedMessage}</pre>
@@ -187,9 +186,11 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 						onChange={(e) => setInputValue(e.target.value)}
 						onKeyDown={handleKeyDown}
 						disabled={isHumanRelayMode && isWaitingForResponse}
-						placeholder={isHumanRelayMode && isWaitingForResponse 
-							? "Paste the LLM response here..."
-							: "Type your message here..."}
+						placeholder={
+							isHumanRelayMode && isWaitingForResponse
+								? "Paste the LLM response here..."
+								: "Type your message here..."
+						}
 						className="flex-1 p-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
 					/>
 					<Button
@@ -201,8 +202,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 							}
 						}}
 						disabled={isHumanRelayMode && isWaitingForResponse && !inputValue.trim()}
-						className="disabled:opacity-50 disabled:cursor-not-allowed"
-					>
+						className="disabled:opacity-50 disabled:cursor-not-allowed">
 						{isHumanRelayMode && isWaitingForResponse ? "Submit Response" : "Send"}
 					</Button>
 				</div>
