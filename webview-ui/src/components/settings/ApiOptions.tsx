@@ -212,6 +212,7 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 					<VSCodeOption value="asksage">AskSage</VSCodeOption>
 					<VSCodeOption value="xai">X AI</VSCodeOption>
 					<VSCodeOption value="sambanova">SambaNova</VSCodeOption>
+					<VSCodeOption value="human-relay">Human Relay</VSCodeOption>
 				</VSCodeDropdown>
 			</DropdownContainer>
 
@@ -1723,6 +1724,21 @@ export function normalizeApiConfiguration(apiConfiguration?: ApiConfiguration): 
 			return getProviderData(xaiModels, xaiDefaultModelId)
 		case "sambanova":
 			return getProviderData(sambanovaModels, sambanovaDefaultModelId)
+		case "human-relay":
+			return {
+				selectedProvider: provider,
+				selectedModelId: "human-relay",
+				selectedModelInfo: {
+					contextWindow: 0,
+					maxTokens: 0,
+					supportsImages: false,
+					supportsComputerUse: false,
+					supportsPromptCache: false,
+					inputPrice: 0,
+					outputPrice: 0,
+					description: "Manual relay through external LLM interface"
+				}
+			}
 		default:
 			return getProviderData(anthropicModels, anthropicDefaultModelId)
 	}

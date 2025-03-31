@@ -40,6 +40,11 @@ export interface ExtensionMessage {
 		| "userCreditsPayments"
 		| "totalTasksSize"
 		| "addToInput"
+		| "humanRelayCopyMessage"
+		| "humanRelaySubmitResponse"
+		| "humanRelayMessageCopied"
+		| "humanRelayResponseSubmitted"
+		| "humanRelayWaitingForResponse"
 	text?: string
 	action?:
 		| "chatButtonClicked"
@@ -80,6 +85,9 @@ export interface ExtensionMessage {
 	userCreditsUsage?: UsageTransaction[]
 	userCreditsPayments?: PaymentTransaction[]
 	totalTasksSize?: number | null
+	response?: string
+	bool?: boolean
+	disabled?: boolean
 }
 
 export type Invoke = "sendMessage" | "primaryButtonClick" | "secondaryButtonClick"

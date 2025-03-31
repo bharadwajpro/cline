@@ -53,6 +53,9 @@ export function validateApiConfiguration(apiConfiguration?: ApiConfiguration): s
 					return "You must provide a valid API key or choose a different provider."
 				}
 				break
+			case "human-relay":
+				// No validation needed for human-relay provider
+				break
 			case "cline":
 				if (!apiConfiguration.clineApiKey) {
 					return "You must provide a valid API key or choose a different provider."

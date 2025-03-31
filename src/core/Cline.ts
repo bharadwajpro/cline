@@ -300,7 +300,7 @@ export class Cline {
 
 		let didWorkspaceRestoreFail = false
 
-		switch (restoreType) {
+		switch (restoreType.restoreType) {
 			case "task":
 				break
 			case "taskAndWorkspace":
@@ -333,7 +333,7 @@ export class Cline {
 		}
 
 		if (!didWorkspaceRestoreFail) {
-			switch (restoreType) {
+			switch (restoreType.restoreType) {
 				case "task":
 				case "taskAndWorkspace":
 					this.conversationHistoryDeletedRange = message.conversationHistoryDeletedRange
@@ -365,7 +365,7 @@ export class Cline {
 					break
 			}
 
-			switch (restoreType) {
+			switch (restoreType.restoreType) {
 				case "task":
 					vscode.window.showInformationMessage("Task messages have been restored to the checkpoint")
 					break
@@ -377,7 +377,7 @@ export class Cline {
 					break
 			}
 
-			if (restoreType !== "task") {
+			if (restoreType.restoreType !== "task") {
 				// Set isCheckpointCheckedOut flag on the message
 				// Find all checkpoint messages before this one
 				const checkpointMessages = this.clineMessages.filter((m) => m.say === "checkpoint_created")
@@ -707,8 +707,13 @@ export class Cline {
 		return result
 	}
 
-	async handleWebviewAskResponse(askResponse: ClineAskResponse, text?: string, images?: string[]) {
-		this.askResponse = askResponse
+	async handleWebviewAskResponse(askResponse: ClineAskResponse | { text: string; images?: string[] }, text?: string, images?: string[]) {
+		if (typeof askResponse === 'object') {
+			this.askResponseText = askResponse.text
+			this.askResponseImages = askResponse.images
+		} else {
+			this.askResponse = askResponse
+		}
 		this.askResponseText = text
 		this.askResponseImages = images
 	}

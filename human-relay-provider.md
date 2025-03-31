@@ -1,0 +1,21 @@
+# Human Relay Provider
+## Requirements
+- Add a new provider in Cline called "Human Relay Provider"
+- When this provider is selected:
+  - Cline processes user messages and appends system prompt/context
+  - Provides a prominent copy button for the formatted message
+  - Shows clear instructions for pasting into external LLM interface
+- UI Approach:
+  - Reuse existing message input text box for pasting LLM responses
+  - Clear visual indicators when waiting for LLM response vs user input
+  - Status messages to guide user
+- Flow:
+  - User copies message from Cline
+  - Pastes into external LLM interface
+  - Copies LLM response back to Cline's message input
+  - Cline processes response and continues conversation
+  - Repeat until task completion
+- State Management:
+  - Track relay mode status
+  - Maintain conversation context during pauses
+  - No timeout - user can respond at their own pace

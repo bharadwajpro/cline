@@ -19,6 +19,7 @@ export type ApiProvider =
 	| "asksage"
 	| "xai"
 	| "sambanova"
+	| "human-relay"
 
 export interface ApiHandlerOptions {
 	apiModelId?: string

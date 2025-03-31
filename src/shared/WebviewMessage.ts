@@ -5,95 +5,109 @@ import { ChatSettings } from "./ChatSettings"
 import { UserInfo } from "./UserInfo"
 import { ChatContent } from "./ChatContent"
 import { TelemetrySetting } from "./TelemetrySetting"
+import { ClineMessage } from "./ExtensionMessage"
+
+export type WebviewMessageType =
+	| "autoApprovalSettings"
+	| "browserSettings"
+	| "telemetrySetting"
+	| "apiConfiguration"
+	| "invoke"
+	| "requestVsCodeLmModels"
+	| "authCallback"
+	| "accountLoginClicked"
+	| "accountLogoutClicked"
+	| "humanRelayCopyMessage"
+	| "humanRelaySubmitResponse"
+	| "humanRelayMessageCopied"
+	| "humanRelayResponseSubmitted"
+	| "humanRelayWaitingForResponse"
+	| "error"
+	| "authStateChanged"
+	| "webviewDidLaunch"
+	| "newTask"
+	| "askResponse"
+	| "clearTask"
+	| "didShowAnnouncement"
+	| "selectImages"
+	| "exportCurrentTask"
+	| "showTaskWithId"
+	| "deleteTaskWithId"
+	| "exportTaskWithId"
+	| "resetState"
+	| "requestOllamaModels"
+	| "requestLmStudioModels"
+	| "openImage"
+	| "openInBrowser"
+	| "openFile"
+	| "openMention"
+	| "cancelTask"
+	| "refreshOpenRouterModels"
+	| "refreshOpenAiModels"
+	| "openMcpSettings"
+	| "restartMcpServer"
+	| "deleteMcpServer"
+	| "togglePlanActMode"
+	| "checkpointDiff"
+	| "checkpointRestore"
+	| "taskCompletionViewChanges"
+	| "openExtensionSettings"
+	| "toggleToolAutoApprove"
+	| "toggleMcpServer"
+	| "getLatestState"
+	| "fetchMcpMarketplace"
+	| "downloadMcp"
+	| "silentlyRefreshMcpMarketplace"
+	| "searchCommits"
+	| "showMcpView"
+	| "fetchLatestMcpServersFromHub"
+	| "openSettings"
+	| "updateMcpTimeout"
+	| "fetchOpenGraphData"
+	| "checkIsImageUrl"
+	| "updateSettings"
+	| "clearAllTaskHistory"
+	| "requestTotalTasksSize"
+	| "optionsResponse"
+	| "showAccountViewClicked"
+	| "fetchUserCreditsData"
+	| "partialMessage"
 
 export interface WebviewMessage {
-	type:
-		| "apiConfiguration"
-		| "webviewDidLaunch"
-		| "newTask"
-		| "askResponse"
-		| "clearTask"
-		| "didShowAnnouncement"
-		| "selectImages"
-		| "exportCurrentTask"
-		| "showTaskWithId"
-		| "deleteTaskWithId"
-		| "exportTaskWithId"
-		| "resetState"
-		| "requestOllamaModels"
-		| "requestLmStudioModels"
-		| "openImage"
-		| "openInBrowser"
-		| "openFile"
-		| "openMention"
-		| "cancelTask"
-		| "refreshOpenRouterModels"
-		| "refreshOpenAiModels"
-		| "openMcpSettings"
-		| "restartMcpServer"
-		| "deleteMcpServer"
-		| "autoApprovalSettings"
-		| "browserSettings"
-		| "togglePlanActMode"
-		| "checkpointDiff"
-		| "checkpointRestore"
-		| "taskCompletionViewChanges"
-		| "openExtensionSettings"
-		| "requestVsCodeLmModels"
-		| "toggleToolAutoApprove"
-		| "toggleMcpServer"
-		| "getLatestState"
-		| "accountLoginClicked"
-		| "accountLogoutClicked"
-		| "showAccountViewClicked"
-		| "authStateChanged"
-		| "authCallback"
-		| "fetchMcpMarketplace"
-		| "downloadMcp"
-		| "silentlyRefreshMcpMarketplace"
-		| "searchCommits"
-		| "showMcpView"
-		| "fetchLatestMcpServersFromHub"
-		| "telemetrySetting"
-		| "openSettings"
-		| "updateMcpTimeout"
-		| "fetchOpenGraphData"
-		| "checkIsImageUrl"
-		| "invoke"
-		| "updateSettings"
-		| "clearAllTaskHistory"
-		| "fetchUserCreditsData"
-		| "optionsResponse"
-		| "requestTotalTasksSize"
-	// | "relaunchChromeDebugMode"
+	type: WebviewMessageType
 	text?: string
-	disabled?: boolean
-	askResponse?: ClineAskResponse
-	apiConfiguration?: ApiConfiguration
+	response?: string
 	images?: string[]
-	bool?: boolean
-	number?: number
+	apiConfiguration?: ApiConfiguration
 	autoApprovalSettings?: AutoApprovalSettings
 	browserSettings?: BrowserSettings
 	chatSettings?: ChatSettings
 	chatContent?: ChatContent
-	mcpId?: string
-	timeout?: number
-	// For toggleToolAutoApprove
-	serverName?: string
-	toolNames?: string[]
-	autoApprove?: boolean
-
-	// For auth
 	user?: UserInfo | null
 	customToken?: string
-	// For openInBrowser
 	url?: string
 	planActSeparateModelsSetting?: boolean
 	telemetrySetting?: TelemetrySetting
 	customInstructionsSetting?: string
+	serverName?: string
+	toolNames?: string[]
+	autoApprove?: boolean
+	timeout?: number
+	mcpId?: string
+	askResponse?: any // TODO: Define ClineAskResponse type
+	number?: number
+	bool?: boolean
+	disabled?: boolean
+	commits?: any[] // TODO: Define commit type
+	message?: string
+	partialMessage?: ClineMessage
 }
 
-export type ClineAskResponse = "yesButtonClicked" | "noButtonClicked" | "messageResponse"
+export interface ClineCheckpointRestore {
+	id: string
+	timestamp: number
+	messages: any[] // TODO: Define message type
+	restoreType: "task" | "taskAndWorkspace" | "workspace"
+}
 
-export type ClineCheckpointRestore = "task" | "workspace" | "taskAndWorkspace"
+export type ClineAskResponse = "yes" | "no" | "cancel" | "yesButtonClicked" | "messageResponse"
