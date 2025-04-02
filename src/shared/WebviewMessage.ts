@@ -67,6 +67,8 @@ export interface WebviewMessage {
 		| "optionsResponse"
 		| "requestTotalTasksSize"
 		| "taskFeedback"
+		| "relayMessage"
+		| "relayResponse"
 	// | "relaunchChromeDebugMode"
 	text?: string
 	disabled?: boolean
@@ -75,6 +77,7 @@ export interface WebviewMessage {
 	images?: string[]
 	bool?: boolean
 	number?: number
+	value?: string
 	autoApprovalSettings?: AutoApprovalSettings
 	browserSettings?: BrowserSettings
 	chatSettings?: ChatSettings

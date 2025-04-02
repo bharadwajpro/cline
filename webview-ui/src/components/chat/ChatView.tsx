@@ -37,6 +37,51 @@ interface ChatViewProps {
 
 export const MAX_IMAGES_PER_MESSAGE = 20 // Anthropic limits to 20 images
 
+const RelayModeContainer = styled.div`
+	padding: 16px;
+	margin: 16px;
+	border: 1px solid var(--vscode-input-border);
+	border-radius: 4px;
+	background-color: var(--vscode-editor-background);
+`
+
+const RelayMessage = styled.div`
+	margin-bottom: 16px;
+
+	h3 {
+		margin: 0 0 8px 0;
+		color: var(--vscode-editor-foreground);
+	}
+
+	pre {
+		background-color: var(--vscode-editor-background);
+		border: 1px solid var(--vscode-input-border);
+		border-radius: 4px;
+		padding: 8px;
+		margin: 0 0 8px 0;
+		white-space: pre-wrap;
+		word-wrap: break-word;
+		color: var(--vscode-editor-foreground);
+	}
+`
+
+const RelayInstructions = styled.div`
+	h3 {
+		margin: 0 0 8px 0;
+		color: var(--vscode-editor-foreground);
+	}
+
+	ol {
+		margin: 0;
+		padding-left: 24px;
+		color: var(--vscode-editor-foreground);
+
+		li {
+			margin-bottom: 4px;
+		}
+	}
+`
+
 const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryView }: ChatViewProps) => {
 	const { version, clineMessages: messages, taskHistory, apiConfiguration, telemetrySetting } = useExtensionState()
 
@@ -77,6 +122,9 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 	const disableAutoScrollRef = useRef(false)
 	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 	const [isAtBottom, setIsAtBottom] = useState(false)
+
+	const [isRelayMode, setIsRelayMode] = useState(false)
+	const [relayMessage, setRelayMessage] = useState<string>("")
 
 	// UI layout depends on the last 2 messages
 	// (since it relies on the content of these messages, we are deep comparing. i.e. the button state after hitting button sets enableButtons to false, and this effect otherwise would have to true again even if messages didn't change
@@ -209,6 +257,8 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 								setClineAsk(undefined)
 								setEnableButtons(false)
 							}
+							// Enable relay mode when receiving api_req_started
+							setIsRelayMode(true)
 							break
 						case "task":
 						case "error":
@@ -282,6 +332,12 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 			if (text || images.length > 0) {
 				if (messages.length === 0) {
 					vscode.postMessage({ type: "newTask", text, images })
+				} else if (isRelayMode) {
+					vscode.postMessage({
+						type: "askResponse",
+						text,
+						images,
+					})
 				} else if (clineAsk) {
 					switch (clineAsk) {
 						case "followup":
@@ -315,7 +371,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 				disableAutoScrollRef.current = false
 			}
 		},
-		[messages.length, clineAsk],
+		[messages.length, clineAsk, isRelayMode],
 	)
 
 	const startNewTask = useCallback(() => {
@@ -477,6 +533,17 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 							handleSecondaryButtonClick(message.text ?? "", message.images ?? [])
 							break
 					}
+					break
+				case "relayMessage":
+					setIsRelayMode(true)
+					setRelayMessage(message.text || "")
+					break
+				case "relayResponse":
+					setIsRelayMode(false)
+					setRelayMessage("")
+					setTextAreaDisabled(false)
+					setEnableButtons(false)
+					break
 			}
 			// textAreaRef.current is not explicitly required here since react guarantees that ref will be stable across re-renders, and we're not using its value but its reference.
 		},
@@ -935,12 +1002,41 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 					)}
 				</>
 			)}
+
+			{isRelayMode && (
+				<RelayModeContainer>
+					<RelayMessage>
+						<h3>Copy this message to your external LLM interface:</h3>
+						<pre>{relayMessage}</pre>
+						<VSCodeButton
+							onClick={() => {
+								vscode.postMessage({
+									type: "invoke",
+									text: "copyToClipboard",
+									value: relayMessage,
+								})
+							}}>
+							Copy Message
+						</VSCodeButton>
+					</RelayMessage>
+					<RelayInstructions>
+						<h3>Instructions:</h3>
+						<ol>
+							<li>Copy the message above</li>
+							<li>Paste it into your external LLM interface</li>
+							<li>Copy the LLM's response</li>
+							<li>Paste the response back into Cline's input box</li>
+						</ol>
+					</RelayInstructions>
+				</RelayModeContainer>
+			)}
+
 			<ChatTextArea
 				ref={textAreaRef}
 				inputValue={inputValue}
 				setInputValue={setInputValue}
 				textAreaDisabled={textAreaDisabled}
-				placeholderText={placeholderText}
+				placeholderText={isRelayMode ? "Paste the LLM's response here..." : placeholderText}
 				selectedImages={selectedImages}
 				setSelectedImages={setSelectedImages}
 				onSend={() => handleSendMessage(inputValue, selectedImages)}

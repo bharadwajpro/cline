@@ -19,6 +19,7 @@ export type ApiProvider =
 	| "asksage"
 	| "xai"
 	| "sambanova"
+	| "human-relay"
 
 export interface ApiHandlerOptions {
 	apiModelId?: string
@@ -71,6 +72,8 @@ export interface ApiHandlerOptions {
 	xaiApiKey?: string
 	thinkingBudgetTokens?: number
 	sambanovaApiKey?: string
+	postMessage?: (message: any) => void
+	onMessage?: (handler: ((message: any) => void) | null) => void
 }
 
 export type ApiConfiguration = ApiHandlerOptions & {

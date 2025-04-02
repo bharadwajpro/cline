@@ -40,6 +40,9 @@ export interface ExtensionMessage {
 		| "userCreditsPayments"
 		| "totalTasksSize"
 		| "addToInput"
+		| "relayMessage"
+		| "relayResponse"
+		| "showNotification"
 	text?: string
 	action?:
 		| "chatButtonClicked"

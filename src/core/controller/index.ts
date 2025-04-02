@@ -592,10 +592,20 @@ export class Controller {
 			}
 			case "invoke": {
 				if (message.text) {
-					await this.postMessageToWebview({
-						type: "invoke",
-						invoke: message.text as Invoke,
-					})
+					if (message.text === "copyToClipboard" && message.value) {
+						try {
+							await vscode.env.clipboard.writeText(message.value)
+							await vscode.window.showInformationMessage("Message copied to clipboard")
+						} catch (error) {
+							console.error("Failed to copy to clipboard:", error)
+							await vscode.window.showErrorMessage("Failed to copy message to clipboard")
+						}
+					} else {
+						await this.postMessageToWebview({
+							type: "invoke",
+							invoke: message.text as Invoke,
+						})
+					}
 				}
 				break
 			}
@@ -645,6 +655,24 @@ export class Controller {
 				await this.postStateToWebview()
 				this.refreshTotalTasksSize()
 				this.postMessageToWebview({ type: "relinquishControl" })
+				break
+			}
+			case "relayMessage": {
+				if (this.task) {
+					await this.postMessageToWebview({
+						type: "relayMessage",
+						text: message.text,
+					})
+				}
+				break
+			}
+			case "relayResponse": {
+				if (this.task) {
+					await this.postMessageToWebview({
+						type: "relayResponse",
+						text: message.text,
+					})
+				}
 				break
 			}
 			// Add more switch case statements here as more webview message commands
