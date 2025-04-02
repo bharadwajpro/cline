@@ -1,0 +1,17 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Coding Conventions
+- Follow existing codebase variable naming conventions and style of code.
+- Don't create unnecessary code, variables, methods or files
+- Don't edit areas of code that need not be changed
+- Try to reuse existing variables, methods, interfaces, code in an elegant way.
+- Try to make changes as minimal as possible in an elegant way taking into both long and short term usecases of the code and developer time savings.
+- Make the code intuitive and easy to follow
+- Make sure the feature is complete. Check every where in the codebase to make sure nothing is missed unhandled.
+- Double/Triple check your code to make sure it is serving intended usecase.
+- If you are making repeated mistakes or stuck, pause for a moment and think of a robust plan before implementing code. Don't mindlessly wander and keep editing the same file over and over again.
+- Plan everything properly and make sure your plan is exhaustive before implementing
