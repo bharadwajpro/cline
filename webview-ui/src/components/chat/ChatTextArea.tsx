@@ -26,6 +26,7 @@ import { MAX_IMAGES_PER_MESSAGE } from "@/components/chat/ChatView"
 import ContextMenu from "@/components/chat/ContextMenu"
 import { ChatSettings } from "@shared/ChatSettings"
 import ServersToggleModal from "./ServersToggleModal"
+import ClineRulesToggleModal from "../cline-rules/ClineRulesToggleModal"
 
 interface ChatTextAreaProps {
 	inputValue: string
@@ -38,6 +39,13 @@ interface ChatTextAreaProps {
 	onSelectImages: () => void
 	shouldDisableImages: boolean
 	onHeightChange?: (height: number) => void
+}
+
+interface GitCommit {
+	type: ContextMenuOptionType.Git
+	value: string
+	label: string
+	description: string
 }
 
 const PLAN_MODE_COLOR = "var(--vscode-inputValidation-warningBorder)"
@@ -219,7 +227,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 	) => {
 		const { filePaths, chatSettings, apiConfiguration, openRouterModels, platform } = useExtensionState()
 		const [isTextAreaFocused, setIsTextAreaFocused] = useState(false)
-		const [gitCommits, setGitCommits] = useState<any[]>([])
+		const [gitCommits, setGitCommits] = useState<GitCommit[]>([])
 
 		const [thumbnailsHeight, setThumbnailsHeight] = useState(0)
 		const [textAreaBaseHeight, setTextAreaBaseHeight] = useState<number | undefined>(undefined)
@@ -264,8 +272,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			const message: ExtensionMessage = event.data
 			switch (message.type) {
 				case "commitSearchResults": {
-					const commits =
-						message.commits?.map((commit: any) => ({
+					const commits: GitCommit[] =
+						message.commits?.map((commit) => ({
 							type: ContextMenuOptionType.Git,
 							value: commit.hash,
 							label: commit.subject,
@@ -1146,7 +1154,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							display: "flex",
 							alignItems: "flex-center",
 							height: textAreaBaseHeight || 31,
-							bottom: 9.5, // should be 10 but doesnt look good on mac
+							bottom: 9.5, // should be 10 but doesn't look good on mac
 							zIndex: 2,
 						}}>
 						<div
@@ -1218,6 +1226,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							</ButtonContainer>
 						</VSCodeButton>
 						<ServersToggleModal />
+						<ClineRulesToggleModal />
 
 						<ModelContainer ref={modelSelectorRef}>
 							<ModelButtonWrapper ref={buttonRef}>
