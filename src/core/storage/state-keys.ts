@@ -75,5 +75,8 @@ export type GlobalStateKey =
 	| "reasoningEffort"
 	| "planActSeparateModelsSetting"
 	| "favoritedModelIds"
+	| "rateLimitEnabled"
+	| "requestsPerMinute"
+	| "tokensPerMinute"
 
 export type LocalStateKey = "localClineRulesToggles"

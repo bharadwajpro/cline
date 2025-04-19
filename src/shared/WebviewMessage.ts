@@ -134,6 +134,7 @@ export interface WebviewMessage {
 	filename?: string
 
 	offset?: number
+	rateLimitParameters?: RateLimitParameters
 }
 
 export type ClineAskResponse = "yesButtonClicked" | "noButtonClicked" | "messageResponse"
@@ -141,3 +142,9 @@ export type ClineAskResponse = "yesButtonClicked" | "noButtonClicked" | "message
 export type ClineCheckpointRestore = "task" | "workspace" | "taskAndWorkspace"
 
 export type TaskFeedbackType = "thumbs_up" | "thumbs_down"
+
+export type RateLimitParameters = {
+	rateLimitEnabled?: boolean
+	requestsPerMinute?: number | null
+	tokensPerMinute?: number | null
+}

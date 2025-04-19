@@ -34,6 +34,14 @@ interface ExtensionStateContextType extends ExtensionState {
 	setTelemetrySetting: (value: TelemetrySetting) => void
 	setShowAnnouncement: (value: boolean) => void
 	setPlanActSeparateModelsSetting: (value: boolean) => void
+	rateLimitEnabled: boolean
+	requestsPerMinute: number | null
+	tokensPerMinute: number | null
+	setRateLimitEnabled: (value: boolean) => void
+	setRequestsPerMinute: (value: number | null) => void
+	setTokensPerMinute: (value: number | null) => void
+	rateLimitStatus?: { status: "waiting" | "token_limit_exceeded"; message?: string }
+	setRateLimitStatus: (status?: { status: "waiting" | "token_limit_exceeded"; message?: string }) => void
 }
 
 const ExtensionStateContext = createContext<ExtensionStateContextType | undefined>(undefined)
@@ -71,6 +79,11 @@ export const ExtensionStateContextProvider: React.FC<{
 	})
 	const [mcpServers, setMcpServers] = useState<McpServer[]>([])
 	const [mcpMarketplaceCatalog, setMcpMarketplaceCatalog] = useState<McpMarketplaceCatalog>({ items: [] })
+	const [rateLimitEnabled, setRateLimitEnabled] = useState<boolean>(false)
+	const [requestsPerMinute, setRequestsPerMinute] = useState<number | null>(null)
+	const [tokensPerMinute, setTokensPerMinute] = useState<number | null>(null)
+	const [rateLimitStatus, setRateLimitStatus] = useState<{ status: "waiting" | "token_limit_exceeded"; message?: string }>()
+
 	const handleMessage = useCallback((event: MessageEvent) => {
 		const message: ExtensionMessage = event.data
 		switch (message.type) {
@@ -166,6 +179,11 @@ export const ExtensionStateContextProvider: React.FC<{
 				setTotalTasksSize(message.totalTasksSize ?? null)
 				break
 			}
+			case "rateLimitStatus": {
+				const rateMsg = message as import("@shared/ExtensionMessage").RateLimitStatusMessage
+				setRateLimitStatus({ status: rateMsg.status, message: rateMsg.message })
+				break
+			}
 		}
 	}, [])
 
@@ -189,6 +207,10 @@ export const ExtensionStateContextProvider: React.FC<{
 		totalTasksSize,
 		globalClineRulesToggles: state.globalClineRulesToggles || {},
 		localClineRulesToggles: state.localClineRulesToggles || {},
+		rateLimitEnabled,
+		requestsPerMinute,
+		tokensPerMinute,
+		rateLimitStatus,
 		setApiConfiguration: (value) =>
 			setState((prevState) => ({
 				...prevState,
@@ -214,6 +236,10 @@ export const ExtensionStateContextProvider: React.FC<{
 				...prevState,
 				shouldShowAnnouncement: value,
 			})),
+		setRateLimitEnabled,
+		setRequestsPerMinute,
+		setTokensPerMinute,
+		setRateLimitStatus,
 	}
 
 	return <ExtensionStateContext.Provider value={contextValue}>{children}</ExtensionStateContext.Provider>

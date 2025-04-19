@@ -9,6 +9,7 @@ import { TabButton } from "../mcp/configuration/McpConfigurationView"
 import { useEvent } from "react-use"
 import { ExtensionMessage } from "@shared/ExtensionMessage"
 import BrowserSettingsSection from "./BrowserSettingsSection"
+import type { RateLimitParameters } from "@shared/ExtensionMessage"
 
 const { IS_DEV } = process.env
 
@@ -28,6 +29,12 @@ const SettingsView = ({ onDone }: SettingsViewProps) => {
 		chatSettings,
 		planActSeparateModelsSetting,
 		setPlanActSeparateModelsSetting,
+		rateLimitEnabled,
+		setRateLimitEnabled,
+		requestsPerMinute,
+		setRequestsPerMinute,
+		tokensPerMinute,
+		setTokensPerMinute,
 	} = useExtensionState()
 	const [apiErrorMessage, setApiErrorMessage] = useState<string | undefined>(undefined)
 	const [modelIdErrorMessage, setModelIdErrorMessage] = useState<string | undefined>(undefined)
@@ -61,12 +68,19 @@ const SettingsView = ({ onDone }: SettingsViewProps) => {
 			apiConfigurationToSubmit = undefined
 		}
 
+		const rateLimitParameters: RateLimitParameters = {
+			rateLimitEnabled,
+			requestsPerMinute,
+			tokensPerMinute,
+		}
+
 		vscode.postMessage({
 			type: "updateSettings",
 			planActSeparateModelsSetting,
 			customInstructionsSetting: customInstructions,
 			telemetrySetting,
 			apiConfiguration: apiConfigurationToSubmit,
+			rateLimitParameters,
 		})
 
 		if (!withoutDone) {
@@ -194,6 +208,48 @@ const SettingsView = ({ onDone }: SettingsViewProps) => {
 					</VSCodeTextArea>
 					<p className="text-xs mt-[5px] text-[var(--vscode-descriptionForeground)]">
 						These instructions are added to the end of the system prompt sent with every request.
+					</p>
+				</div>
+
+				{/* Rate Limit Section */}
+				<div className="mb-[5px] border border-solid border-[var(--vscode-panel-border)] rounded-md p-[10px] bg-[var(--vscode-panel-background)]">
+					<div className="font-medium mb-2">Rate Limit</div>
+					<VSCodeCheckbox
+						checked={rateLimitEnabled}
+						onChange={(e: any) => setRateLimitEnabled(e.target.checked === true)}
+						className="mb-2">
+						Enable Rate Limit
+					</VSCodeCheckbox>
+					<div className="flex flex-col gap-2 mt-2">
+						<label className="text-xs text-[var(--vscode-descriptionForeground)]">
+							Requests Per Minute
+							<input
+								type="number"
+								min={0}
+								className="ml-2 px-1 py-0.5 rounded border border-[var(--vscode-panel-border)] bg-[var(--vscode-input-background)] text-[var(--vscode-foreground)]"
+								value={requestsPerMinute ?? ""}
+								onChange={(e) => setRequestsPerMinute(e.target.value === "" ? null : Number(e.target.value))}
+								disabled={!rateLimitEnabled}
+								placeholder="No limit"
+								style={{ width: 120 }}
+							/>
+						</label>
+						<label className="text-xs text-[var(--vscode-descriptionForeground)]">
+							Tokens Per Minute
+							<input
+								type="number"
+								min={0}
+								className="ml-2 px-1 py-0.5 rounded border border-[var(--vscode-panel-border)] bg-[var(--vscode-input-background)] text-[var(--vscode-foreground)]"
+								value={tokensPerMinute ?? ""}
+								onChange={(e) => setTokensPerMinute(e.target.value === "" ? null : Number(e.target.value))}
+								disabled={!rateLimitEnabled}
+								placeholder="No limit"
+								style={{ width: 120 }}
+							/>
+						</label>
+					</div>
+					<p className="text-xs mt-2 text-[var(--vscode-descriptionForeground)]">
+						Set custom rate limits for API requests. Leave blank, 0, or negative for no limit.
 					</p>
 				</div>
 

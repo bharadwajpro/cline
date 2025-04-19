@@ -27,6 +27,7 @@ import ChatRow from "@/components/chat/ChatRow"
 import ChatTextArea from "@/components/chat/ChatTextArea"
 import TaskHeader from "@/components/chat/TaskHeader"
 import TelemetryBanner from "@/components/common/TelemetryBanner"
+import { RateLimitError } from "../../../../src/api/index" // Adjust path as needed
 
 interface ChatViewProps {
 	isHidden: boolean
@@ -77,6 +78,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 	const disableAutoScrollRef = useRef(false)
 	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 	const [isAtBottom, setIsAtBottom] = useState(false)
+	const [rateLimitWarning, setRateLimitWarning] = useState<string | null>(null)
 
 	// UI layout depends on the last 2 messages
 	// (since it relies on the content of these messages, we are deep comparing. i.e. the button state after hitting button sets enableButtons to false, and this effect otherwise would have to true again even if messages didn't change
@@ -288,40 +290,54 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 		(text: string, images: string[]) => {
 			text = text.trim()
 			if (text || images.length > 0) {
-				if (messages.length === 0) {
-					vscode.postMessage({ type: "newTask", text, images })
-				} else if (clineAsk) {
-					switch (clineAsk) {
-						case "followup":
-						case "plan_mode_respond":
-						case "tool":
-						case "browser_action_launch":
-						case "command": // user can provide feedback to a tool or command use
-						case "command_output": // user can send input to command stdin
-						case "use_mcp_server":
-						case "completion_result": // if this happens then the user has feedback for the completion result
-						case "resume_task":
-						case "resume_completed_task":
-						case "mistake_limit_reached":
-						case "new_task": // user can provide feedback or reject the new task suggestion
-							vscode.postMessage({
-								type: "askResponse",
-								askResponse: "messageResponse",
-								text,
-								images,
-							})
-							break
-						// there is no other case that a textfield should be enabled
+				try {
+					if (messages.length === 0) {
+						vscode.postMessage({ type: "newTask", text, images })
+					} else if (clineAsk) {
+						switch (clineAsk) {
+							case "followup":
+							case "plan_mode_respond":
+							case "tool":
+							case "browser_action_launch":
+							case "command": // user can provide feedback to a tool or command use
+							case "command_output": // user can send input to command stdin
+							case "use_mcp_server":
+							case "completion_result": // if this happens then the user has feedback for the completion result
+							case "resume_task":
+							case "resume_completed_task":
+							case "mistake_limit_reached":
+							case "new_task": // user can provide feedback or reject the new task suggestion
+								vscode.postMessage({
+									type: "askResponse",
+									askResponse: "messageResponse",
+									text,
+									images,
+								})
+								break
+							// there is no other case that a textfield should be enabled
+						}
+					}
+					setInputValue("")
+					setTextAreaDisabled(true)
+					setSelectedImages([])
+					setClineAsk(undefined)
+					setEnableButtons(false)
+					// setPrimaryButtonText(undefined)
+					// setSecondaryButtonText(undefined)
+					disableAutoScrollRef.current = false
+				} catch (err) {
+					if (err instanceof RateLimitError) {
+						if (err.reason === "token_limit_exceeded") {
+							setRateLimitWarning(
+								"Current Context Length exceeds the Tokens Per Minute limit set by the user. Ignoring the Tokens Per Minute Rate Limiter setting",
+							)
+						} else if (err.reason === "waiting") {
+							setRateLimitWarning("Cline is actively waiting to avoid being rate limited.")
+						}
+					} else {
+						throw err
 					}
 				}
-				setInputValue("")
-				setTextAreaDisabled(true)
-				setSelectedImages([])
-				setClineAsk(undefined)
-				setEnableButtons(false)
-				// setPrimaryButtonText(undefined)
-				// setSecondaryButtonText(undefined)
-				disableAutoScrollRef.current = false
 			}
 		},
 		[messages.length, clineAsk],
@@ -788,6 +804,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 			}
 
 			// regular message
+			const isApiReqStarted = messageOrGroup.type === "say" && messageOrGroup.say === "api_req_started"
 			return (
 				<ChatRow
 					key={messageOrGroup.ts}
@@ -799,10 +816,20 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 					onHeightChange={handleRowHeightChange}
 					inputValue={inputValue}
 					sendMessageFromChatRow={handleSendMessage}
+					{...(isApiReqStarted && rateLimitWarning ? { rateLimitWarning } : {})}
 				/>
 			)
 		},
-		[expandedRows, modifiedMessages, groupedMessages.length, toggleRowExpansion, handleRowHeightChange, inputValue],
+		[
+			expandedRows,
+			modifiedMessages,
+			groupedMessages.length,
+			toggleRowExpansion,
+			handleRowHeightChange,
+			inputValue,
+			rateLimitWarning,
+			handleSendMessage,
+		],
 	)
 
 	return (

@@ -52,6 +52,7 @@ interface ChatRowProps {
 	onHeightChange: (isTaller: boolean) => void
 	inputValue?: string
 	sendMessageFromChatRow?: (text: string, images: string[]) => void
+	rateLimitWarning?: string | null
 }
 
 interface ChatRowContentProps extends Omit<ChatRowProps, "onHeightChange"> {}
@@ -129,7 +130,7 @@ export const ChatRowContent = ({
 	inputValue,
 	sendMessageFromChatRow,
 }: ChatRowContentProps) => {
-	const { mcpServers, mcpMarketplaceCatalog } = useExtensionState()
+	const { mcpServers, mcpMarketplaceCatalog, rateLimitStatus } = useExtensionState()
 	const [seeNewChangesDisabled, setSeeNewChangesDisabled] = useState(false)
 
 	const [cost, apiReqCancelReason, apiReqStreamingFailedMessage] = useMemo(() => {
@@ -741,6 +742,36 @@ export const ChatRowContent = ({
 								</div>
 								<span className={`codicon codicon-chevron-${isExpanded ? "up" : "down"}`}></span>
 							</div>
+							{/* Rate limit warning banner if present */}
+							{rateLimitStatus && isLast && (
+								<div
+									style={{
+										background: "#fffbe6",
+										color: "#ad6800",
+										padding: "6px 12px",
+										borderBottom: "1px solid #ffe58f",
+										margin: "4px 0",
+										borderRadius: 3,
+										fontSize: 13,
+									}}>
+									{rateLimitStatus.status === "waiting" ? (
+										<>
+											<span role="img" aria-label="waiting">
+												⏳
+											</span>
+											{rateLimitStatus.message || "Waiting for rate limit window to reset..."}
+										</>
+									) : (
+										<>
+											<span role="img" aria-label="warning">
+												⚠️
+											</span>
+											{rateLimitStatus.message ||
+												"Current context length exceeds the Tokens Per Minute limit set by the user. Ignoring the Tokens Per Minute Rate Limiter setting."}
+										</>
+									)}
+								</div>
+							)}
 							{((cost == null && apiRequestFailedMessage) || apiReqStreamingFailedMessage) && (
 								<>
 									{(() => {

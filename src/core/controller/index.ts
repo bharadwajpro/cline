@@ -773,7 +773,13 @@ export class Controller {
 				if (message.apiConfiguration) {
 					await updateApiConfiguration(this.context, message.apiConfiguration)
 					if (this.task) {
-						this.task.api = buildApiHandler(message.apiConfiguration)
+						this.task.api = buildApiHandler(
+							{
+								...message.apiConfiguration,
+								...(message.rateLimitParameters || {}),
+							},
+							(msg) => this.postMessageToWebview(msg),
+						)
 					}
 				}
 
@@ -787,6 +793,18 @@ export class Controller {
 
 				// plan act setting
 				await updateGlobalState(this.context, "planActSeparateModelsSetting", message.planActSeparateModelsSetting)
+
+				// rate limit settings
+				const rl = message.rateLimitParameters || {}
+				if (typeof rl.rateLimitEnabled !== "undefined") {
+					await updateGlobalState(this.context, "rateLimitEnabled", rl.rateLimitEnabled)
+				}
+				if (typeof rl.requestsPerMinute !== "undefined") {
+					await updateGlobalState(this.context, "requestsPerMinute", rl.requestsPerMinute)
+				}
+				if (typeof rl.tokensPerMinute !== "undefined") {
+					await updateGlobalState(this.context, "tokensPerMinute", rl.tokensPerMinute)
+				}
 
 				// after settings are updated, post state to webview
 				await this.postStateToWebview()

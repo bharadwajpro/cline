@@ -50,6 +50,8 @@ export interface ExtensionMessage {
 		| "relativePathsResponse" // Handles single and multiple path responses
 		| "fileSearchResults"
 		| "grpc_response" // New type for gRPC responses
+		| "updateSettings"
+		| "rateLimitStatus"
 	text?: string
 	paths?: (string | null)[] // Used for relativePathsResponse
 	action?:
@@ -116,6 +118,7 @@ export interface ExtensionMessage {
 		request_id: string // Same ID as the request
 		error?: string // Optional error message
 	}
+	rateLimitParameters?: RateLimitParameters
 }
 
 export type Invoke = "sendMessage" | "primaryButtonClick" | "secondaryButtonClick"
@@ -283,3 +286,15 @@ export interface ClineApiReqInfo {
 export type ClineApiReqCancelReason = "streaming_failed" | "user_cancelled"
 
 export const COMPLETION_RESULT_CHANGES_FLAG = "HAS_CHANGES"
+
+export type RateLimitParameters = {
+	rateLimitEnabled?: boolean
+	requestsPerMinute?: number | null
+	tokensPerMinute?: number | null
+}
+
+export interface RateLimitStatusMessage {
+	type: "rateLimitStatus"
+	status: "waiting" | "token_limit_exceeded"
+	message?: string
+}
